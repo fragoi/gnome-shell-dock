@@ -2,6 +2,9 @@
 
 const { GObject, St, Shell } = imports.gi;
 
+/* TODO: configure this */
+const ICON_SIZE = 64;
+
 var Dock = GObject.registerClass(
 	class Dock extends St.BoxLayout {
 
@@ -11,7 +14,7 @@ var Dock = GObject.registerClass(
 			this._appSystem = Shell.AppSystem.get_default();
 			this._appSystemSignals = [
 				this._appSystem.connect('installed-changed', () => this._onInstalledChanged()),
-				this._appSystem.connect('app-state-changed', (s, a) => this._onAppStateChanged(s, a))
+				this._appSystem.connect('app-state-changed', (s, a) => this._onAppStateChanged(a))
 			];
 
 			this._appSystem.get_running().forEach(e => this._runningApp(e));
@@ -24,42 +27,43 @@ var Dock = GObject.registerClass(
 			log('installed-changed');
 		}
 
-		_onAppStateChanged(s, a) {
-			log(`app state changed ${a.get_name()}, ${a.get_state()}`);
+		_onAppStateChanged(a) {
+			log(`app-state-changed: ${a.get_name()} -> ${a.get_state()}`);
 			switch (a.get_state()) {
-				case Shell.AppState.STOPPED: this._stoppedApp(a);
-				case Shell.AppState.STARTING: this._startingApp(a);
-				case Shell.AppState.RUNNING: this._runningApp(a);
+				case Shell.AppState.STOPPED: this._stoppedApp(a); break;
+				case Shell.AppState.STARTING: this._startingApp(a); break;
+				case Shell.AppState.RUNNING: this._runningApp(a); break;
 			}
 		}
 
 		_onAllocationChanged() {
+			log('allocation-changed');
 			this._setPosition();
 		}
 
 		_onDestroy() {
 			log('destroy');
 			this._appSystemSignals.forEach(e => {
-				log(`disconnecting signal ${e}`);
 				this._appSystem.disconnect(e);
 			});
 			this._appSystemSignals = [];
 		}
 
 		_stoppedApp(a) {
-			log(`stopped app ${a.get_name()}`);
+			log(`stopped-app: ${a.get_name()}`);
 			let item = this._dockItem(a);
 			if (item) {
-				log(`destroy item ${item}`);
 				item.destroy();
 			}
 		}
 
 		_startingApp(a) {
+			log(`starting-app: ${a.get_name()}`);
 			this._runningApp(a);
 		}
 
 		_runningApp(a) {
+			log(`running-app: ${a.get_name()}`);
 			if (!this._dockItem(a)) {
 				this.add_child(new DockItem(a));
 			}
@@ -70,6 +74,7 @@ var Dock = GObject.registerClass(
 			if (!parent) return;
 			let x = (parent.get_width() - this.get_width()) / 2;
 			let y = (parent.get_height() - this.get_height());
+			log(`set-position: ${x}, ${y}`);
 			this.set_position(x, y);
 		}
 
@@ -87,7 +92,7 @@ var DockItem = GObject.registerClass(
 			super._init({ style_class: 'dock-item' });
 
 			this._app = app;
-			this._icon = app.create_icon_texture(64);
+			this._icon = app.create_icon_texture(ICON_SIZE);
 
 			this.set_child(this._icon);
 		}
