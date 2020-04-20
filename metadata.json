@@ -1,0 +1,10 @@
+{
+	"uuid": "dock@fragoi.github.com",
+	"name": "Fra Dock",
+	"description": "Dock for Gnome Shell",
+	"url": "https://github.com/fragoi/gnome-shell-dock",
+	"version": 1,
+	"shell-version": [
+		"3.28.4"
+	]
+}
