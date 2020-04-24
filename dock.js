@@ -51,7 +51,7 @@ var Dock = GObject.registerClass(
 
 		_stoppedApp(a) {
 			log(`stopped-app: ${a.get_name()}`);
-			let item = this._dockItem(a);
+			let item = this._dockApp(a);
 			if (item) {
 				item.destroy();
 			}
@@ -64,8 +64,8 @@ var Dock = GObject.registerClass(
 
 		_runningApp(a) {
 			log(`running-app: ${a.get_name()}`);
-			if (!this._dockItem(a)) {
-				this.add_child(new DockItem(a));
+			if (!this._dockApp(a)) {
+				this.add_child(new DockApp(a));
 			}
 		}
 
@@ -78,15 +78,15 @@ var Dock = GObject.registerClass(
 			this.set_position(x, y);
 		}
 
-		_dockItem(a) {
+		_dockApp(a) {
 			return this.get_children().find(e => e.app === a);
 		}
 
 	}
 );
 
-var DockItem = GObject.registerClass(
-	class DockItem extends St.Bin {
+var DockApp = GObject.registerClass(
+	class DockApp extends St.Bin {
 
 		_init(app) {
 			super._init({ style_class: 'dock-item' });
