@@ -14,12 +14,14 @@ function enable() {
 	_log('enabling...');
 	dock = new Dock();
 	Main.layoutManager.addChrome(dock);
+	Main.dock = dock;
 	_log('enabled');
 }
 
 function disable() {
 	_log('disabling...');
 	if (dock) {
+		delete Main.dock;
 		dock.destroy();
 		dock = null;
 	}
