@@ -13,7 +13,7 @@ function init() { }
 function enable() {
 	_log('enabling...');
 	dock = new Dock();
-	Main.uiGroup.add_child(dock);
+	Main.layoutManager.addChrome(dock);
 	_log('enabled');
 }
 
