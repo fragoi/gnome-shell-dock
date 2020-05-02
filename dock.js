@@ -1,6 +1,6 @@
 'use strict';
 
-const { GObject, St, Shell } = imports.gi;
+const { GObject, St, Shell, Clutter } = imports.gi;
 
 /* TODO: configure this */
 const ICON_SIZE = 64;
@@ -30,7 +30,7 @@ var Dock = GObject.registerClass(
 			/* add already running apps */
 			this._appSystem.get_running().forEach(e => this._runningApp(e));
 
-			this.connect('allocation-changed', () => this._onAllocationChanged());
+			this.connect('parent-set', () => this._onParentSet());
 			this.connect('destroy', () => this._onDestroy());
 		}
 
@@ -45,19 +45,6 @@ var Dock = GObject.registerClass(
 				case Shell.AppState.STARTING: this._startingApp(a); break;
 				case Shell.AppState.RUNNING: this._runningApp(a); break;
 			}
-		}
-
-		_onAllocationChanged() {
-			_log('allocation-changed');
-			this._setPosition();
-		}
-
-		_onDestroy() {
-			_log('destroy');
-			this._appSystemSignals.forEach(e => {
-				this._appSystem.disconnect(e);
-			});
-			this._appSystemSignals = [];
 		}
 
 		_stoppedApp(a) {
@@ -80,17 +67,33 @@ var Dock = GObject.registerClass(
 			}
 		}
 
-		_setPosition() {
-			let parent = this.get_parent();
-			if (!parent) return;
-			let x = (parent.get_width() - this.get_width()) / 2;
-			let y = (parent.get_height() - this.get_height());
-			_log(`set-position: ${x}, ${y}`);
-			this.set_position(x, y);
-		}
-
 		_dockApp(a) {
 			return this.get_children().find(e => e.app === a);
+		}
+
+		_onParentSet() {
+			_log(`parent-set`);
+			let parent = this.get_parent();
+			let xalign = new Clutter.AlignConstraint({
+				source: parent,
+				align_axis: Clutter.AlignAxis.X_AXIS,
+				factor: 0.5
+			});
+			let yalign = new Clutter.AlignConstraint({
+				source: parent,
+				align_axis: Clutter.AlignAxis.Y_AXIS,
+				factor: 1
+			});
+			this.add_constraint_with_name('xalign', xalign);
+			this.add_constraint_with_name('yalign', yalign);
+		}
+
+		_onDestroy() {
+			_log('destroy');
+			this._appSystemSignals.forEach(e => {
+				this._appSystem.disconnect(e);
+			});
+			this._appSystemSignals = [];
 		}
 
 	}
