@@ -5,6 +5,11 @@ const { GObject, St, Shell } = imports.gi;
 /* TODO: configure this */
 const ICON_SIZE = 64;
 
+/* log facility */
+function _log(msg) {
+	if (log) log(`Dock: ${msg}`);
+}
+
 var Dock = GObject.registerClass(
 	class Dock extends St.BoxLayout {
 
@@ -17,6 +22,7 @@ var Dock = GObject.registerClass(
 				this._appSystem.connect('app-state-changed', (s, a) => this._onAppStateChanged(a))
 			];
 
+			/* add already running apps */
 			this._appSystem.get_running().forEach(e => this._runningApp(e));
 
 			this.connect('allocation-changed', () => this._onAllocationChanged());
@@ -24,11 +30,11 @@ var Dock = GObject.registerClass(
 		}
 
 		_onInstalledChanged() {
-			log('installed-changed');
+			_log('installed-changed');
 		}
 
 		_onAppStateChanged(a) {
-			log(`app-state-changed: ${a.get_name()} -> ${a.get_state()}`);
+			_log(`app-state-changed: ${a.get_name()} -> ${a.get_state()}`);
 			switch (a.get_state()) {
 				case Shell.AppState.STOPPED: this._stoppedApp(a); break;
 				case Shell.AppState.STARTING: this._startingApp(a); break;
@@ -37,12 +43,12 @@ var Dock = GObject.registerClass(
 		}
 
 		_onAllocationChanged() {
-			log('allocation-changed');
+			_log('allocation-changed');
 			this._setPosition();
 		}
 
 		_onDestroy() {
-			log('destroy');
+			_log('destroy');
 			this._appSystemSignals.forEach(e => {
 				this._appSystem.disconnect(e);
 			});
@@ -50,7 +56,7 @@ var Dock = GObject.registerClass(
 		}
 
 		_stoppedApp(a) {
-			log(`stopped-app: ${a.get_name()}`);
+			_log(`stopped-app: ${a.get_name()}`);
 			let item = this._dockApp(a);
 			if (item) {
 				item.destroy();
@@ -58,12 +64,12 @@ var Dock = GObject.registerClass(
 		}
 
 		_startingApp(a) {
-			log(`starting-app: ${a.get_name()}`);
+			_log(`starting-app: ${a.get_name()}`);
 			this._runningApp(a);
 		}
 
 		_runningApp(a) {
-			log(`running-app: ${a.get_name()}`);
+			_log(`running-app: ${a.get_name()}`);
 			if (!this._dockApp(a)) {
 				this.add_child(new DockApp(a));
 			}
@@ -74,7 +80,7 @@ var Dock = GObject.registerClass(
 			if (!parent) return;
 			let x = (parent.get_width() - this.get_width()) / 2;
 			let y = (parent.get_height() - this.get_height());
-			log(`set-position: ${x}, ${y}`);
+			_log(`set-position: ${x}, ${y}`);
 			this.set_position(x, y);
 		}
 
