@@ -14,7 +14,12 @@ var Dock = GObject.registerClass(
 	class Dock extends St.BoxLayout {
 
 		_init() {
-			super._init({ style_class: 'dock' });
+			super._init({
+				style_class: 'dock',
+				reactive: true,
+				can_focus: true,
+				track_hover: true
+			});
 
 			this._appSystem = Shell.AppSystem.get_default();
 			this._appSystemSignals = [
@@ -92,19 +97,28 @@ var Dock = GObject.registerClass(
 );
 
 var DockApp = GObject.registerClass(
-	class DockApp extends St.Bin {
+	class DockApp extends St.Button {
 
 		_init(app) {
-			super._init({ style_class: 'dock-item' });
+			super._init({
+				style_class: 'dock-item',
+				reactive: true
+			});
 
 			this._app = app;
 			this._icon = app.create_icon_texture(ICON_SIZE);
 
 			this.set_child(this._icon);
+
+			this.connect('clicked', () => this._clicked());
 		}
 
 		get app() {
 			return this._app;
+		}
+
+		_clicked() {
+			_log('clicked');
 		}
 
 	}

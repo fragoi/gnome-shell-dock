@@ -1,3 +1,7 @@
 .dock {
 	border: 1px red solid;
 }
+
+.dock:hover {
+	border-color: black;
+}
