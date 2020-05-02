@@ -121,7 +121,7 @@ var DockApp = GObject.registerClass(
 		}
 
 		_clicked() {
-			_log('clicked');
+			this._app.activate();
 		}
 
 	}
