@@ -22,11 +22,11 @@ var Dock = GObject.registerClass(
 				this._appSystem.connect('app-state-changed', (s, a) => this._onAppStateChanged(a))
 			];
 
-			/* add already running apps */
-			this._appSystem.get_running().forEach(e => this._runningApp(e));
-
 			this.connect('parent-set', () => this._onParentSet());
 			this.connect('destroy', () => this._onDestroy());
+
+			/* add already running apps */
+			this._runningApps();
 		}
 
 		_onInstalledChanged() {
@@ -60,6 +60,26 @@ var Dock = GObject.registerClass(
 			if (!this._dockApp(a)) {
 				this.add_child(new DockApp(a));
 			}
+		}
+
+		_runningApps() {
+			/* returns the minimum window sequence ID */
+			let minWinIdF = app => app.get_windows()
+				.map(win => win.get_stable_sequence())
+				.reduce(Math.min);
+			/* maps the app with its minimum window sequence ID */
+			let mapAppIdF = app => ({ app: app, id: minWinIdF(app) });
+			/* running apps */
+			this._appSystem.get_running()
+				/* map the apps with their mininum window sequence ID */
+				.map(mapAppIdF)
+				/* sort the apps using their ID */
+				.sort((a, b) => a.id - b.id)
+				/* add the apps to the dock */
+				.forEach(e => {
+					_log(`Add running app: ${e.app.get_name()}, with ID: ${e.id}`)
+					this._runningApp(e.app);
+				});
 		}
 
 		_dockApp(a) {
