@@ -1,7 +1,19 @@
 .dock {
-	border: 1px red solid;
+	background-color: #2e3436;
+	border: 1px solid rgba(128, 128, 128, 0.4);
+	border-bottom: 0px;
+	border-radius: 9px 9px 0px 0px;
+	padding: 0px 4px;
+	font-size: 9pt;
+	color: #eeeeec;
 }
 
-.dock:hover {
-	border-color: black;
+.dock-item {
+	border-radius: 4px;
+	padding: 2px;
+	margin: 2px;
+}
+
+.dock-item:hover {
+	background-color: rgba(238, 238, 236, 0.1);
 }

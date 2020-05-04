@@ -14,12 +14,7 @@ var Dock = GObject.registerClass(
 	class Dock extends St.BoxLayout {
 
 		_init() {
-			super._init({
-				style_class: 'dock',
-				reactive: true,
-				can_focus: true,
-				track_hover: true
-			});
+			super._init({ style_class: 'dock' });
 
 			this._appSystem = Shell.AppSystem.get_default();
 			this._appSystemSignals = [
@@ -72,7 +67,7 @@ var Dock = GObject.registerClass(
 		}
 
 		_onParentSet() {
-			_log(`parent-set`);
+			_log('parent-set');
 			let parent = this.get_parent();
 			let xalign = new Clutter.AlignConstraint({
 				source: parent,
@@ -105,7 +100,9 @@ var DockApp = GObject.registerClass(
 		_init(app) {
 			super._init({
 				style_class: 'dock-item',
-				reactive: true
+				reactive: true,
+				can_focus: true,
+				track_hover: true
 			});
 
 			this._app = app;
