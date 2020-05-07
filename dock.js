@@ -14,11 +14,20 @@ var Dock = GObject.registerClass(
 	class Dock extends St.Bin {
 
 		_init() {
-			super._init({ style_class: 'dock' });
+			super._init({
+				style_class: 'dock',
+				reactive: true,
+				can_focus: true,
+				track_hover: true
+			});
 
 			this.set_child(new DockAppBox());
 
 			this.connect('parent-set', () => this._onParentSet());
+			this.connect('enter-event', () => this._activate());
+			this.connect('leave-event', () => this._deactivate());
+
+			this._deactivate();
 		}
 
 		_onParentSet() {
@@ -36,6 +45,14 @@ var Dock = GObject.registerClass(
 			});
 			this.add_constraint_with_name('xalign', xalign);
 			this.add_constraint_with_name('yalign', yalign);
+		}
+
+		_activate() {
+			this.set_height(-1);
+		}
+
+		_deactivate() {
+			this.set_height(1);
 		}
 
 	}
