@@ -11,10 +11,41 @@ function _log(msg) {
 }
 
 var Dock = GObject.registerClass(
-	class Dock extends St.BoxLayout {
+	class Dock extends St.Bin {
 
 		_init() {
 			super._init({ style_class: 'dock' });
+
+			this.set_child(new DockAppBox());
+
+			this.connect('parent-set', () => this._onParentSet());
+		}
+
+		_onParentSet() {
+			_log('parent-set');
+			let parent = this.get_parent();
+			let xalign = new Clutter.AlignConstraint({
+				source: parent,
+				align_axis: Clutter.AlignAxis.X_AXIS,
+				factor: 0.5
+			});
+			let yalign = new Clutter.AlignConstraint({
+				source: parent,
+				align_axis: Clutter.AlignAxis.Y_AXIS,
+				factor: 1
+			});
+			this.add_constraint_with_name('xalign', xalign);
+			this.add_constraint_with_name('yalign', yalign);
+		}
+
+	}
+);
+
+var DockAppBox = GObject.registerClass(
+	class DockAppBox extends St.BoxLayout {
+
+		_init() {
+			super._init();
 
 			this._appSystem = Shell.AppSystem.get_default();
 			this._appSystemSignals = [
@@ -22,7 +53,6 @@ var Dock = GObject.registerClass(
 				this._appSystem.connect('app-state-changed', (s, a) => this._onAppStateChanged(a))
 			];
 
-			this.connect('parent-set', () => this._onParentSet());
 			this.connect('destroy', () => this._onDestroy());
 
 			/* add already running apps */
@@ -86,26 +116,10 @@ var Dock = GObject.registerClass(
 			return this.get_children().find(e => e.app === a);
 		}
 
-		_onParentSet() {
-			_log('parent-set');
-			let parent = this.get_parent();
-			let xalign = new Clutter.AlignConstraint({
-				source: parent,
-				align_axis: Clutter.AlignAxis.X_AXIS,
-				factor: 0.5
-			});
-			let yalign = new Clutter.AlignConstraint({
-				source: parent,
-				align_axis: Clutter.AlignAxis.Y_AXIS,
-				factor: 1
-			});
-			this.add_constraint_with_name('xalign', xalign);
-			this.add_constraint_with_name('yalign', yalign);
-		}
-
 		_onDestroy() {
 			_log('destroy');
 			this._appSystemSignals.forEach(e => {
+				_log(`disconnecting signal: ${e}`);
 				this._appSystem.disconnect(e);
 			});
 			this._appSystemSignals = [];
