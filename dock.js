@@ -22,10 +22,13 @@ var Dock = GObject.registerClass(
 				height: 1
 			});
 
+			this._active = false;
+
 			this.set_child(new DockAppBox());
 
 			this.connect('parent-set', () => this._onParentSet());
-			this.connect('notify::hover', () => this._showHide());
+			this.connect('notify::hover', () => this._onHover());
+			this.connect('transition-stopped::height', () => this._onSetHeightCompleted());
 		}
 
 		_onParentSet() {
@@ -47,7 +50,7 @@ var Dock = GObject.registerClass(
 			this.add_constraint_with_name('yalign', yalign);
 		}
 
-		_showHide() {
+		_onHover() {
 			if (this.hover) {
 				this._activate();
 			} else {
@@ -55,30 +58,38 @@ var Dock = GObject.registerClass(
 			}
 		}
 
+		_onSetHeightCompleted() {
+			if (this._active) {
+				/* unset height */
+				this.set_height(-1);
+			}
+		}
+
 		_activate() {
-			_log('activate');
-			let height = this._getNaturalHeight();
+			if (this._active) return;
+			this._active = true;
+			let height = this._getActiveHeight();
 			this._animateSetHeight(height);
 		}
 
 		_deactivate() {
-			_log('deactivate');
+			if (!this._active) return;
+			this._active = false;
 			this._animateSetHeight(1);
 		}
 
 		_animateSetHeight(height) {
-			_log(`animate set height to: ${height}`);
 			this.save_easing_state();
 			this.set_height(height);
 			this.restore_easing_state();
 		}
 
-		_getNaturalHeight() {
+		_getActiveHeight() {
 			let themeNode = this.get_theme_node();
 			let forWidth = themeNode.adjust_for_width(this.get_width());
 			let [minHeight, natHeight] = this.get_child().get_preferred_height(forWidth);
 			[minHeight, natHeight] = themeNode.adjust_preferred_height(minHeight, natHeight);
-			return natHeight;
+			return Math.max(natHeight, 1);
 		}
 
 	}
@@ -150,7 +161,7 @@ var DockAppBox = GObject.registerClass(
 				.sort((a, b) => a.id - b.id)
 				/* add the apps to the dock */
 				.forEach(e => {
-					_log(`Add running app: ${e.app.get_name()}, with ID: ${e.id}`)
+					_log(`add running app: ${e.app.get_name()}, with ID: ${e.id}`)
 					this._runningApp(e.app);
 				});
 		}
