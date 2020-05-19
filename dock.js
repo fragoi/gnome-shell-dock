@@ -100,7 +100,7 @@ var DockAppBox = GObject.registerClass(
 			super._init();
 
 			this._appSystem = Shell.AppSystem.get_default();
-			this._appSystemSignals = [
+			this._appSystemHIDs = [
 				this._appSystem.connect('installed-changed', () => this._onInstalledChanged()),
 				this._appSystem.connect('app-state-changed', (s, a) => this._onAppStateChanged(a))
 			];
@@ -170,11 +170,11 @@ var DockAppBox = GObject.registerClass(
 
 		_onDestroy() {
 			_log('destroy');
-			this._appSystemSignals.forEach(e => {
+			this._appSystemHIDs.forEach(e => {
 				_log(`disconnecting signal: ${e}`);
 				this._appSystem.disconnect(e);
 			});
-			this._appSystemSignals = [];
+			this._appSystemHIDs = [];
 		}
 
 	}
