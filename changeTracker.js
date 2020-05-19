@@ -13,6 +13,22 @@ var ClutterActor = class ClutterActor {
 	}
 
 	/**
+	 * Generic method for a basic attribute, where the current value of the attribute
+	 * can be read via its getter method without causing any side effect, and the new
+	 * value can be set via its setter method.
+	 * On revert the old value is set via setter method.
+	 */
+	_setBasicAttribute(attr, newValue) {
+		let getter = 'get_' + attr;
+		let setter = 'set_' + attr;
+		let oldValue = this._actor[getter]();
+		this._actor[setter](newValue);
+		this._reverters.push(() => {
+			this._actor[setter](oldValue);
+		});
+	}
+
+	/**
 	 * Reverts the changes.
 	 */
 	destroy() {
@@ -22,11 +38,19 @@ var ClutterActor = class ClutterActor {
 		}
 	}
 
+	/**
+	 * Connects an handler to a signal.
+	 * On revert the handler is disconnected.
+	 */
 	connect() {
 		let handlerId = this._actor.connect.apply(this._actor, arguments);
 		this._reverters.push(() => this._actor.disconnect(handlerId));
 	}
 
+	/**
+	 * Set the properties of the given object on the actor.
+	 * On revert the properties are restored to their previous value.
+	 */
 	set_props(props) {
 		let oldProps = {};
 		for (let p in props) {
@@ -55,9 +79,7 @@ var ClutterActor = class ClutterActor {
 	}
 
 	set_reactive(value) {
-		let oldValue = this._actor.get_reactive();
-		this._actor.set_reactive(value);
-		this._reverters.push(() => this._actor.set_reactive(oldValue));
+		this._setBasicAttribute('reactive', value);
 	}
 
 }
@@ -69,15 +91,11 @@ var StWidget = class StWidget extends ClutterActor {
 	}
 
 	set_can_focus(value) {
-		let oldValue = this._actor.get_can_focus();
-		this._actor.set_can_focus(value);
-		this._reverters.push(() => this._actor.set_can_focus(oldValue));
+		this._setBasicAttribute('can_focus', value);
 	}
 
 	set_track_hover(value) {
-		let oldValue = this._actor.get_track_hover();
-		this._actor.set_track_hover(value);
-		this._reverters.push(() => this._actor.set_track_hover(oldValue));
+		this._setBasicAttribute('track_hover', value);
 	}
 
 }
