@@ -32,8 +32,6 @@ var Dock = GObject.registerClass(
 		}
 
 		_onParentSet() {
-			_log('parent-set');
-
 			/* alignment */
 			let parent = this.get_parent();
 			let xalign = new Clutter.AlignConstraint({
