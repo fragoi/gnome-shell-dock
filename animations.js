@@ -73,6 +73,7 @@ var Squeeze = class Squeeze {
 		let forWidth = themeNode.adjust_for_width(actor.get_width());
 		let [minHeight, natHeight] = actor.get_child().get_preferred_height(forWidth);
 		[minHeight, natHeight] = themeNode.adjust_preferred_height(minHeight, natHeight);
+		/* avoid active height to be less than minimum height */
 		return Math.max(this._minHeight, natHeight);
 	}
 
