@@ -2,6 +2,11 @@
 
 const { GObject, St, Shell, Clutter } = imports.gi;
 
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+
+const Animations = Me.imports.animations;
+
 /* TODO: configure this */
 const ICON_SIZE = 64;
 
@@ -14,21 +19,21 @@ var Dock = GObject.registerClass(
 	class Dock extends St.Bin {
 
 		_init() {
-			super._init({
-				style_class: 'dock',
-				reactive: true,
-				can_focus: true,
-				track_hover: true,
-				height: 1
-			});
+			super._init();
 
-			this._active = false;
+			/* activation animation */
+			this._animation = new Animations.DockSqueeze();
+			this.set_child(this._animation);
 
-			this.set_child(new DockAppBox());
+			/* dock visible graphics */
+			this._dock = new St.Bin({ style_class: 'dock' });
+			this._animation.set_child(this._dock);
+
+			/* apps management */
+			this._appBox = new DockAppBox();
+			this._dock.set_child(this._appBox);
 
 			this.connect('parent-set', () => this._onParentSet());
-			this.connect('notify::hover', () => this._onHover());
-			this.connect('transition-stopped::height', () => this._onSetHeightCompleted());
 		}
 
 		_onParentSet() {
@@ -46,48 +51,6 @@ var Dock = GObject.registerClass(
 			});
 			this.add_constraint_with_name('xalign', xalign);
 			this.add_constraint_with_name('yalign', yalign);
-		}
-
-		_onHover() {
-			if (this.hover) {
-				this._activate();
-			} else {
-				this._deactivate();
-			}
-		}
-
-		_onSetHeightCompleted() {
-			if (this._active) {
-				/* unset height */
-				this.set_height(-1);
-			}
-		}
-
-		_activate() {
-			if (this._active) return;
-			this._active = true;
-			let height = this._getActiveHeight();
-			this._animateSetHeight(height);
-		}
-
-		_deactivate() {
-			if (!this._active) return;
-			this._active = false;
-			this._animateSetHeight(1);
-		}
-
-		_animateSetHeight(height) {
-			this.save_easing_state();
-			this.set_height(height);
-			this.restore_easing_state();
-		}
-
-		_getActiveHeight() {
-			let themeNode = this.get_theme_node();
-			let forWidth = themeNode.adjust_for_width(this.get_width());
-			let [minHeight, natHeight] = this.get_child().get_preferred_height(forWidth);
-			[minHeight, natHeight] = themeNode.adjust_preferred_height(minHeight, natHeight);
-			return Math.max(natHeight, 1);
 		}
 
 	}
